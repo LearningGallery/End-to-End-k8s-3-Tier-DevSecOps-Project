@@ -7,7 +7,7 @@ pipeline {
     environment  {
         SCANNER_HOME=tool 'Sonar-Scanner'
         AWS_ACCOUNT_ID = credentials('ACCOUNT_ID')
-        AWS_ECR_REPO_NAME = credentials('ECR_REPO2')
+        AWS_ECR_REPO_NAME = credentials('ECR_Backend')
         AWS_DEFAULT_REGION = 'ap-southeast-1'
         REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/"
     }
