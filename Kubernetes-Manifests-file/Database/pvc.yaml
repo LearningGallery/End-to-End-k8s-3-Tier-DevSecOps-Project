@@ -2,7 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mongo-volume-claim
-  namespace: 3Tier
+  namespace: 3tier
 spec: 
   accessModes:  
     - ReadWriteOnce

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
-  namespace: 3Tier
+  namespace: 3tier
   labels:
     role: frontend
     env: demo
