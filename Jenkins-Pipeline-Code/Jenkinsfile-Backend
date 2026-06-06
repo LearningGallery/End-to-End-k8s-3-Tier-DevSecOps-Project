@@ -19,7 +19,7 @@ pipeline {
         }
         stage('Checkout from Git') {
             steps {
-                git credentialsId: 'GITHUB', url: 'https://github.com/LearningGallery/End-to-End-k8s-3-Tier-DevSecOps-Project.git'
+                git branch: 'main', credentialsId: 'GITHUB Token', url: 'https://github.com/LearningGallery/End-to-End-k8s-3-Tier-DevSecOps-Project.git'
             }
         }
         stage('Sonarqube Analysis') {
@@ -82,7 +82,7 @@ pipeline {
         }
         stage('Checkout Code') {
             steps {
-                git credentialsId: 'GITHUB', url: 'https://github.com/LearningGallery/End-to-End-k8s-3-Tier-DevSecOps-Project.git'
+                git branch: 'main', credentialsId: 'GITHUB Token', url: 'https://github.com/LearningGallery/End-to-End-k8s-3-Tier-DevSecOps-Project.git'
             }
         }
         stage('Update Deployment file') {
