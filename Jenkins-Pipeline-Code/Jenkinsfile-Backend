@@ -6,8 +6,8 @@ pipeline {
     }
     environment  {
         SCANNER_HOME=tool 'Sonar-Scanner'
-        AWS_ACCOUNT_ID = credentials('ACCOUNT_ID')
-        AWS_ECR_REPO_NAME = credentials('ECR_Backend')
+        AWS_ACCOUNT_ID = credentials('AWS_ACCOUNT_ID')
+        AWS_ECR_REPO_NAME = credentials('ECR-Backend')
         AWS_DEFAULT_REGION = 'ap-southeast-1'
         REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/"
     }
@@ -19,7 +19,7 @@ pipeline {
         }
         stage('Checkout from Git') {
             steps {
-                git branch: 'main', credentialsId: 'GITHUB Token', url: 'https://github.com/LearningGallery/End-to-End-k8s-3-Tier-DevSecOps-Project.git'
+                git branch: 'main', credentialsId: 'GITHUB-Token', url: 'https://github.com/LearningGallery/End-to-End-k8s-3-Tier-DevSecOps-Project.git'
             }
         }
         stage('Sonarqube Analysis') {
@@ -42,17 +42,18 @@ pipeline {
         }
         stage('OWASP Dependency-Check Scan') {
             steps {
-                dir('Application-Code/Backend') {
-                    withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
-                         dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit --nvdApiKey $NVD_API_KEY', odcInstallation: 'DP-Check'
-                    }
+                dir('Application-Code/backend') {
+                    //withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
+                    //     dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit --nvdApiKey $NVD_API_KEY', odcInstallation: 'DP-Check'
+                    //}
+                    dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit , odcInstallation: 'DP-Check''
                     dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
                 }
             }
         }
         stage('Trivy File Scan') {
             steps {
-                dir('Application-Code/Backend') {
+                dir('Application-Code/backend') {
                     sh 'trivy fs . > trivyfs.txt'
                 }
             }
@@ -84,7 +85,7 @@ pipeline {
         }
         stage('Checkout Code') {
             steps {
-                git branch: 'main', credentialsId: 'GITHUB Token', url: 'https://github.com/LearningGallery/End-to-End-k8s-3-Tier-DevSecOps-Project.git'
+                git branch: 'main', credentialsId: 'GITHUB-Token', url: 'https://github.com/LearningGallery/End-to-End-k8s-3-Tier-DevSecOps-Project.git'
             }
         }
         stage('Update Deployment file') {

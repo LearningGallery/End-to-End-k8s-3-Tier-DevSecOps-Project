@@ -55,7 +55,10 @@ docker run -d --restart=always --name sonar -p 9000:9000 sonarqube:lts-community
 # 5. Installing AWS CLI
 log "Installing AWS CLI..."
 sudo apt-get update -y
-sudo apt install awscli -y
+sudo apt install unzip -y
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
 
 # 6. Installing Kubectl (Pinned Version)
 log "Installing Kubectl ($KUBECTL_VERSION)..."
