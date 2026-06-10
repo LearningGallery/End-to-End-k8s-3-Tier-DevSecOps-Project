@@ -1,4 +1,3 @@
-```markdown
 # 🚀 Advanced End-to-End DevSecOps Kubernetes Three-Tier Project
 
 ![Kubernetes](https://img.shields.io/badge/kubernetes-%23326ce5.svg?style=for-the-badge&logo=kubernetes&logoColor=white)
@@ -163,7 +162,3 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 ## 📄 License
 
 This project is [MIT](https://www.google.com/search?q=LICENSE) licensed.
-
-```
-
-```
