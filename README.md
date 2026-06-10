@@ -1,12 +1,10 @@
 # Three-Tier Web Application Deployment on AWS EKS using AWS EKS, ArgoCD, Prometheus, Grafana, and Jenkins
-[![LinkedIn](https://img.shields.io/badge/Connect%20with%20me%20on-LinkedIn-blue.svg)](https://www.linkedin.com/in/aman-devops/)
-[![Discord](https://img.shields.io/badge/Discord-7289DA?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/invite/jdzF8kTtw2)
-[![Medium](https://img.shields.io/badge/Medium-12100E?style=for-the-badge&logo=medium&logoColor=white)](https://medium.com/@amanpathakdevops)
-[![GitHub](https://img.shields.io/github/stars/AmanPathak-DevOps.svg?style=social)](https://github.com/AmanPathak-DevOps)
+[![LinkedIn](https://img.shields.io/badge/Connect%20with%20me%20on-LinkedIn-blue.svg)](https://www.linkedin.com/in/Im-Abutalha/)
+[![GitHub](https://img.shields.io/github/stars/LearningGallery.svg?style=social)](https://github.com/LearningGallery)
 [![AWS](https://img.shields.io/badge/AWS-%F0%9F%9B%A1-orange)](https://aws.amazon.com)
 [![Terraform](https://img.shields.io/badge/Terraform-%E2%9C%A8-lightgrey)](https://www.terraform.io)
 
-![Three-Tier Banner](assets/Three-Tier.gif)
+![Three-Tier Banner](assets/Network-Architecture-Diagram.gif)
 
 Welcome to the Three-Tier Web Application Deployment project! 🚀
 
@@ -56,5 +54,3 @@ We welcome contributions! If you have ideas for enhancements or find any issues,
 
 ## License
 This project is licensed under the [MIT License](LICENSE).
-
-Happy Coding! 🚀
