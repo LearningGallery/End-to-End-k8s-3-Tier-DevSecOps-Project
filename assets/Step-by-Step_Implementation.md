@@ -51,7 +51,7 @@ Navigate to the Terraform directory in this repository to launch the Jenkins ser
 cd terraform
 terraform init
 terraform plan
-terraform apply --auto-approve
+terraform apply --var-file="variables.tfvars" --auto-approve 
 
 ```
 
