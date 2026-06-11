@@ -58,13 +58,16 @@ Before getting started, ensure you have the following:
 ### Step 2: We will install Terraform & AWS CLI to deploy our Jenkins Server(EC2) on AWS if not installed already on your local machine.
 
 #### Terraform Installation Script on ubuntu machine.
+
 ```bash
 wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg - dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 sudo apt update
 sudo apt install terraform -y
 ```
+
 #### AWSCLI Installation Script
+
 ```bash
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 sudo apt install unzip -y
@@ -75,14 +78,18 @@ sudo ./aws/install
 ### Step 3: Now, Configure both the tools AWSCLI and Terraform
 
 #### Configure `Terraform`: Edit the file `/etc/environment` using the below command, add the highlighted lines and add your keys in the blur space.
+
 ```bash
 sudo vim /etc/environment
 export AWS_ACCESS_KEY_ID="Paste here generated `Access key`"
 export AWS_SECRET_ACCESS_KEY="Paste here generated `Secret access key`"
 export AWS_DEFAULT_REGION="ap-southeast-1"
 ```
+
 After making the changes, restart your machine to reflect the changes to your environment variables.
+
 #### Configure `AWSCLI`: Run the below command, and add your keys.
+
 ```bash
 aws configure
 AWS Access Key ID [None]: "Paste here generated `Access key`"
@@ -98,6 +105,7 @@ Clone the Git repository- https://github.com/LearningGallery/End-to-End-k8s-3-Ti
 2. Before Running terraform cmd make sure you have created s3 bucket named `learninggallery-tf-statefiles` in aws `ap-southeast-1` region to store terraform state file.
 3. Create SSH key Pair Named `learninggallery` and store the generated .pem file safe will use this PEM file to authenticate and connect `Jenkins-Server` vm once provisioned.
 4. Now, Provsion Infrastructure by running below Terraform CMDs.
+
 ```bash
 cd Jenkins-Server-TF
 terraform init
@@ -110,6 +118,7 @@ terraform apply --var-file="variables.tfvars" --auto-approve
 ### Step 5: Jenkins Server Configuration
 
 SSH into your newly provisioned EC2 instance `Jenkins-Server` using `Public IP` you may get it from AWS portal and and verify all the required utilities tools installed by Userdata script by running below cmds:
+
 ```bash
 jenkins --version
 docker --version
@@ -123,36 +132,59 @@ eksctl --version
 
 Now, we have to configure Jenkins. So, copy the public IP of your Jenkins Server and paste it into your favourite browser on port 8080
 Access Jenkins at `http://<EC2-PUBLIC-IP>:8080`.
+
 ![JenKins Getting Started Page](image.png)
+
 To Extract Initial Password Login to `Jenkins-Server` using `ubuntu` userid and generated pam file as authentication file and run below cmd given.
+
 ```bash
 sudo -i
 cat '/var/lib/jenkins/secrets/initialAdminPassword'
 ```
+
 Paste the Initial Password and Click `Continue`
+
 ![Initial Admin Password Extraction](image-1.png)
+
 Click on `Install suggested plugins`
+
 ![Jenkins Install Suggested Plugins](image-2.png)
+
 Jenkins Plugin Installation in Progress Page...
+
 ![Track PlugIn Installation Progress](image-3.png)
+
 Create Admin User as Shown below
+
 ![Create Admin User](image-4.png)
+
 Click on `Save and Finish`
+
 ![Jenkins URL Config Page](image-5.png)
+
 Click on `Start using Jenkins`
+
 ![Jenkins Dashboard](image-6.png)
+
 The Jenkins Dashboard will look like the snippet below
 
 ### Step 6: EKS Cluster Deployment
 
 Use `eksctl` on your Jenkins server to spin up the Kubernetes cluster:
 Now, go back to your `Jenkins-Server` terminal and configure the `AWSCLI`.
+
 ![AWSCLI Configure](image-7.png)
+
 Go to `Manage Jenkins`
+
 ![Manage Jenkins](image-8.png)
+
 Click on `Plugins`
+
 ![Plugins](image-9.png)
+
 Select the `Available plugins`, install the following plugins and click on `Install`
+
 ```bash
 AWS Credentials
 Pipeline: AWS Steps
@@ -167,20 +199,35 @@ NodeJS
 OWASP Dependency-Check
 SonarQube Scanner
 ```
+
 ![PlugIn Install](image-10.png)
+
 Once both plugins are installed, restart your Jenkins service by checking the Restart Jenkins option.
+
 ![Restart Jenkins](image-11.png)
+
 Log in to your Jenkins Server Again.
+
 ![Jenkins Login](image-12.png)
+
 Now, we have to set our AWS credentials on Jenkins
+
 Go to `Manage Plugins` and click on `Credentials`
+
 ![Manage Credentials](image-13.png)
+
 Click on `global`.
+
 ![Global Credentials](image-14.png)
+
 Click on `Add Credentials`
+
 ![Add Credential](image-15.png)
+
 Select `Username with Password` and Click `Next`
+
 ![Create Credentials](image-16.png)
+
 Click on `Create` and continue for rest Credentials as shown below
 
 | Type | ID / Name | Value / Hint | Scope / Description |
@@ -193,58 +240,80 @@ Click on `Create` and continue for rest Credentials as shown below
 | Secret Text | **ECR-Frontend** | | System - Global - ECR-Frontend |
 | Secret Text | **ECR-Backend** | | System - Global - ECR-Backend |
 | Secret Text | **NVD_API_KEY** | | System - Global - NVD DP Check Token |
+
 Finally it should resemble like this.
+
 ![Jenkins Credentials](image-17.png)
 
 Create an eks cluster using the commands below.
+
 ```bash
 eksctl create cluster --name 3Tier-K8s-EKS-Cluster --region ap-southeast-1 --node-type t2.medium --nodes-min 2 --nodes-max 2
 aws eks update-kubeconfig --region ap-southeast-1 --name 3Tier-K8s-EKS-Cluster
 ```
+
 ![Provision EKS using CMD](image-18.png)
+
 Once your cluster is created, you can validate whether your nodes are ready or not by using the following command
+
 ```bash 
 kubectl get nodes
 ```
+
 ![List EKS Pods](image-19.png)
 
 ### Step 7: AWS App Load Balancer Ingress Controller Setup For EKS
 
 1. Create an IAM policy and attach it to an OIDC provider.
 Download the policy for the LoadBalancer prerequisite.
+
 ```bash
 curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.5.4/docs/install/iam_policy.json
 ```
+
 ![Download Policy](image-20.png)
+
 Create the IAM policy using the command below
+
 ```bash
 aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam_policy.json
 ```
+
 ![Create Policy](image-21.png)
+
 Create OIDC Provider
+
 ```bash
 eksctl utils associate-iam-oidc-provider --region=ap-southeast-1 --cluster=3Tier-K8s-EKS-Cluster --approve
 ```
+
 ![Create OIDC Provider](image-22.png)
+
 Create a Service Account by using the below command and replace your account ID with your one.
+
 ```bash
 eksctl create iamserviceaccount --cluster=3Tier-K8s-EKS-Cluster --namespace=kube-system --name=aws-load-balancer-controller --role-name AmazonEKSLoadBalancerControllerRole --attach-policy-arn=arn:aws:iam::<your_account_id>:policy/AWSLoadBalancerControllerIAMPolicy --approve --region=ap-southeast-1
 ```
+
 ![Create IAM SvcAccount](image-23.png)
 
 2. Deploy the AWS Application Load Balancer (ALB) Controller to your EKS cluster to handle ingress traffic automatically.
 Run the below command to deploy the AWS Load Balancer Controller
+
 ```bash
 sudo snap install helm --classic
 helm repo add eks https://aws.github.io/eks-charts
 helm repo update eks
 helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=my-cluster --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller
 ```
+
 ![ALB ingress Controller](image-24.png)
 After 2 minutes, run the command below to check whether your pods are running or not.
+
 ```bash
 kubectl get deployment -n kube-system aws-load-balancer-controller
 ```
+
 ![Get ALB Controller](image-25.png)
 
 ### Step 8: Amazon ECR Repositories
@@ -257,54 +326,80 @@ aws ecr create-repository --repository-name backend --region ap-southeast-1
 
 ```
 ![Create ECR](image-26.png)
+
 Now, we need to configure ECR locally because we have to upload our images to Amazon ECR.
 Copy the 1st command for login as shown
+
 ![ECR Login CMD](image-27.png)
+
 Now, run the copied command on your `Jenkins-Server`.
+
 ![ECR Login](image-28.png)
 
 #### Step 9: Install & Configure ArgoCD
+
 We will be deploying our application on a 3tier namespace. To do that, we will create a 3tier namespace on EKS
+
 ```bash
 kubectl create namespace three-tier
 ```
+
 ![Create 3Tier Namepsace](image-29.png)
+
 create a secret for our ECR Repo by the below command
+
 ```bash
 kubectl create secret generic ecr-registry-secret \
   --from-file=.dockerconfigjson=${HOME}/.docker/config.json \
   --type=kubernetes.io/dockerconfigjson --namespace 3tier
 kubectl get secrets -n 3tier
 ```
+
 ![Create ECR Secret](image-30.png)
+
 Now, we will install argoCD. To do that, create a separate namespace for it and apply the argocd configuration for installation.
+
 ```bash
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.4.7/manifests/install.yaml
 ```
+
 ![ArgoCD Namespace](image-31.png)
+
 All pods must be running. To validate, run the command below
+
 ```bash
 kubectl get pods -n argocd
 ```
+
 ![Get Argo pods](image-32.png)
+
 Now, expose the argoCD server as a LoadBalancer using the below command
+
 ```bash
 kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
 ```
+
 ![Expose on LB](image-33.png)
+
 To access the argoCD, copy the LoadBalancer DNS and hit it on your favourite browser.
+
 ![Landing Page ArgoCD](image-34.png)
+
 Now, we need to get the password for our argoCD server to perform the deployment.
 To do that, we have a prerequisite, which is jq. Install it by the command below.
+
 ```bash
 sudo apt install jq -y
 export ARGOCD_SERVER=$(kubectl get svc argocd-server -n argocd -o json | jq -r '.status.loadBalancer.ingress[0].hostname')
 export ARGO_PWD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 echo %ARGO_PWD
 ```
+
 ![Default Admin Password](image-35.png)
+
 Here is our ArgoCD Dashboard.
+
 ![ArgoCD Dashboard](image-36.png)
 
 ### Step 10: Configure Security & Code Quality (SonarQube & Trivy)
@@ -312,26 +407,46 @@ Here is our ArgoCD Dashboard.
 1. Access SonarQube via `http://<EC2-PUBLIC-IP>:9000`.
 Default Username and Password will be admin 
 Click on Log In
+
 ![SonarQube Login](image-37.png)
+
 On the next Page will ask to `Update your Password` just change as per your choice.
+
 2. Generate a Security Token and Webhook.
+
 Click on `Administration`, then `Security`, select `Users` and Click on `Update token`
+
 ![SonarQube-user](image-38.png)
+
 Click on `Generate` and Copy the `token`, keep it somewhere safe and click on `Done`.
+
 ![Generate Token](image-39.png)
+
 Now, We have to configure webhooks for quality checks. Click on `Administration`, then `Configuration`, and select `Webhooks`
+
 ![Sonar Webhook](image-40.png)
+
 Click on `Create` and Provide the name of your project and in the URL, provide the Jenkins server public IP with port 8080, add sonarqube-webhook in the suffix, and click on `Create`.
 `http://<jenkins-server-public-ip>:8080/sonarqube-webhook/`
+
 ![alt text](image-41.png)
+
 Now, we have to create a Project for the `frontend` code. Click on `Manually`.
+
 ![Create Project](image-45.png)
+
 Provide the display name `3Tier-Frontend` to your Project and click on `Setup`
+
 ![Frontend Project](image-42.png)
+
 Select the `Use existing token` and click on `Continue`.
+
 ![Provide Token](image-43.png)
+
 Select `Other` and `Linux` as OS.
+
 ![Run Analysis](image-44.png)
+
 Now, we have to create a Project for the Frontend code do the same for Backend Code.
 
 ### Step 8: Jenkins CI/CD Pipelines
