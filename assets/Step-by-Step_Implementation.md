@@ -41,12 +41,53 @@ Before getting started, ensure you have the following:
 ## 🚀 Step-by-Step Execution Guide
 
 ### Step 1: IAM User Setup
-1. Navigate to the AWS IAM console.
-2. Create an IAM User with `AdministratorAccess`.
-3. Generate AWS Access Keys and download the CSV. Configure them locally using `aws configure`.
+1. Navigate to the AWS IAM Service and click on `Users`.
+2. Click on `Create user`.
+3. User Name : `ToDo-K8s-DevSecOps` Click on `Next`.
+4. On Permission Option Select `Atach policies directly` Search and select `AdministratorAccess` from Permission policies window and Click on `Create user`.
+5. Now, select your created user `ToDo-K8s-DevSecOps`, then click on `Security credentials` and generate an `access key` by clicking on `Create access key`.
+6. Select the `Command Line Interface (CLI)`, then select the `check mark` for the confirmation and click on `Next`.
+7. Provide the `Description` and click on the `Create access key`.
+8. Save Generated `Access key` and `Secret access key` somewhere safe will use them to configure terraform and AWSCLI tools.
 
-### Step 2: Infrastructure Provisioning (Terraform)
-Navigate to the Terraform directory in this repository to launch the Jenkins server.
+### Step 2: We will install Terraform & AWS CLI to deploy our Jenkins Server(EC2) on AWS if not installed already on your local machine.
+#### Terraform Installation Script on ubuntu machine.
+```bash
+wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg - dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+sudo apt update
+sudo apt install terraform -y
+```
+#### AWSCLI Installation Script
+```bash
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+sudo apt install unzip -y
+unzip awscliv2.zip
+sudo ./aws/install
+```
+
+### Step 3: Now, Configure both the tools AWSCLI and Terraform
+#### Configure `Terraform`: Edit the file `/etc/environment` using the below command, add the highlighted lines and add your keys in the blur space.
+```bash
+sudo vim /etc/environment
+export AWS_ACCESS_KEY_ID="Paste here generated `Access key`"
+export AWS_SECRET_ACCESS_KEY="Paste here generated `Secret access key`"
+export AWS_DEFAULT_REGION="ap-southeast-1"
+```
+After making the changes, restart your machine to reflect the changes to your environment variables.
+#### Configure `AWSCLI`: Run the below command, and add your keys.
+```bash
+aws configure
+AWS Access Key ID [None]: "Paste here generated `Access key`"
+AWS Secret Access Key [None]: "Paste here generated `Secret access key`"
+Default region name [None]: "ap-southeast-1"
+Default output format [None]: json
+```
+
+### Step 4: Infrastructure Provisioning (Terraform)
+Clone the Git repository- https://github.com/LearningGallery/End-to-End-k8s-3-Tier-DevSecOps-Project.git
+1. Navigate to the Terraform directory `Jenkins-Server-TF` in this repository to launch the Jenkins server.
+2. Before Running terraform cmd make sure you have created s3 bucket named `learninggallery-tf-statefiles` in aws to store terraform state file.
 ```bash
 cd terraform
 terraform init
