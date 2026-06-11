@@ -449,6 +449,32 @@ Select `Other` and `Linux` as OS.
 
 Now, we have to create a Project for the Frontend code do the same for Backend Code.
 
+### Step 11: Configure Jenkins Tools
+
+1. Go to `Dashboard` -> `Manage Jenkins` -> `Tools`
+
+![Manage Jenkins](image-46.png)
+
+2. We are configuring `JDK`, Search for JDK and provide the configuration like the snippet below.
+
+![JDK Installation](image-47.png)
+
+3. Now, we will configure the `SonarQube scanner`
+
+![Sonar-Scanner](image-48.png)
+
+4. Proceed with `NodeJS` Tools Configuration.
+
+![NodeJS Config](image-49.png)
+
+5. Configure OWASP `Dependency Check`
+
+![DP-Check Config](image-50.png)
+
+6. Finally Configure Docker Jenkins Tool
+
+![Docker Config](image-51.png)
+
 ### Step 8: Jenkins CI/CD Pipelines
 
 Set up multi-branch pipelines in Jenkins to completely automate the following tasks:
