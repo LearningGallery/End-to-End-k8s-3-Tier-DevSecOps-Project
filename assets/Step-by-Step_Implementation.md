@@ -402,7 +402,7 @@ Here is our ArgoCD Dashboard.
 
 ![ArgoCD Dashboard](image-36.png)
 
-### Step 10: Configure Security & Code Quality (SonarQube & Trivy)
+#### Step 10: Configure Security & Code Quality (SonarQube & Trivy)
 
 1. Access SonarQube via `http://<EC2-PUBLIC-IP>:9000`.
 Default Username and Password will be admin 
@@ -449,7 +449,7 @@ Select `Other` and `Linux` as OS.
 
 Now, we have to create a Project for the Frontend code do the same for Backend Code.
 
-### Step 11: Configure Jenkins Tools
+#### Step 11: Configure Jenkins Tools
 
 1. Go to `Dashboard` -> `Manage Jenkins` -> `Tools`
 
@@ -475,9 +475,18 @@ Now, we have to create a Project for the Frontend code do the same for Backend C
 
 ![Docker Config](image-51.png)
 
-### Step 8: Jenkins CI/CD Pipelines
+#### Configure Jenkins System for Tools Path.
 
-Set up multi-branch pipelines in Jenkins to completely automate the following tasks:
+Go to `Dashboard` -> `Manage Jenkins` -> `System` -> Search for `SonarQube installations`
+Provide the name as it is, then in the Server URL, copy the SonarQube public IP (same as Jenkins) with port 9000, select the Sonar token that we have added recently, and click on Apply & Save.
+
+![Sonar-Path](image-52.png)
+
+Now, we are ready to create our Jenkins Pipeline to deploy our Frontend and Backend Code.
+
+### Step 12: Jenkins CI Pipelines
+
+Set up pipelines in Jenkins to completely automate the following tasks:
 
 * Code checkout
 * SonarQube Analysis & Quality Gate check
@@ -485,6 +494,22 @@ Set up multi-branch pipelines in Jenkins to completely automate the following ta
 * Trivy File & Image Scanning
 * Push Docker Image to ECR
 * Update Kubernetes manifests with the new image tag.
+
+Go to Jenkins `Dashboard` Click on `New Item`
+
+![New Pipeline](image-53.png)
+
+Provide the name of your Pipeline `3Tier-Backend-Application` Select `Pipeline` and click on `OK`.
+
+![Create Pipeline](image-54.png)
+
+On Pipeline Config Page Select `Pipeline` and on the Pipeline Definition Section Select from dropdown `Pipeline script from SCM` -> Repository URL: `https://github.com/LearningGallery/End-to-End-k8s-3-Tier-DevSecOps-Project.git` -> Credentials: `GITHUB Portal Login`.
+
+![Pipeline Config1](image-55.png)
+
+Under Braches and Build key in `*./main` -> Script Path: `Jenkins-Pipeline-Code/Jenkinsfile-Backend` -> `Apply` and `Save`.
+
+![Pipeline Config2](image-56.png)
 
 ### Step 9: ArgoCD Installation (GitOps)
 
