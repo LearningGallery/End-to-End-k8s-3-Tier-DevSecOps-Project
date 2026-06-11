@@ -511,6 +511,11 @@ Under Braches and Build key in `*./main` -> Script Path: `Jenkins-Pipeline-Code/
 
 ![Pipeline Config2](image-56.png)
 
+Now, click on the `Build Now`. and now Prceed to create another Pipeline same way Backend is created just Change the Pipeline Name to `3Tier-Frontend-Application` and path to `Jenkins-Pipeline-Code/Jenkinsfile-Frontend`
+
+![Pipeline Ran SucccesFull](image-57.png)
+
+
 ### Step 9: ArgoCD Installation (GitOps)
 
 Install ArgoCD onto your EKS cluster:
