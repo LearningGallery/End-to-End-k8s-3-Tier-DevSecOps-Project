@@ -293,6 +293,12 @@ Create a Service Account by using the below command and replace your account ID 
 
 ```bash
 eksctl create iamserviceaccount --cluster=3Tier-K8s-EKS-Cluster --namespace=kube-system --name=aws-load-balancer-controller --role-name AmazonEKSLoadBalancerControllerRole --attach-policy-arn=arn:aws:iam::<your_account_id>:policy/AWSLoadBalancerControllerIAMPolicy --approve --region=ap-southeast-1
+
+# 1. Create the IAM role and attach the AWS managed policy
+eksctl create iamserviceaccount --name ebs-csi-controller-sa --namespace kube-system --cluster 3Tier-K8s-EKS-Cluster --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy --approve --role-only --role-name AmazonEKS_EBS_CSI_DriverRole
+
+# 2. Add the EBS CSI driver add-on to your cluster
+eksctl create addon --name aws-ebs-csi-driver --cluster 3Tier-K8s-EKS-Cluster --service-account-role-arn arn:aws:iam::485950501937:role/AmazonEKS_EBS_CSI_DriverRole --force
 ```
 
 ![Create IAM SvcAccount](image-23.png)
@@ -341,7 +347,7 @@ Now, run the copied command on your `Jenkins-Server`.
 We will be deploying our application on a 3tier namespace. To do that, we will create a 3tier namespace on EKS
 
 ```bash
-kubectl create namespace three-tier
+kubectl create namespace 3tier
 ```
 
 ![Create 3Tier Namepsace](image-29.png)
@@ -515,20 +521,114 @@ Now, click on the `Build Now`. and now Prceed to create another Pipeline same wa
 
 ![Pipeline Ran SucccesFull](image-57.png)
 
+Finnaly you should Expect that both the Backend and FrontEnd CI Pipeline sucessfully build.
 
-### Step 9: ArgoCD Installation (GitOps)
+![2 Successfully build Pipeline](image-58.png)
 
-Install ArgoCD onto your EKS cluster:
+### Step 13: Monitoring (Prometheus & Grafana)
+
+Deploy the Kube-Prometheus stack via Helm:
 
 ```bash
-kubectl create namespace argocd
-kubectl apply -n argocd -f [https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml](https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml)
-
+helm repo add stable https://charts.helm.sh/stable
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm install prometheus prometheus-community/prometheus
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+helm install grafana grafana/grafana
 ```
 
-Expose ArgoCD via LoadBalancer, retrieve the admin password, and connect your repository to sync application deployment manifests.
+![Prometheus & Grafana Install](image-59.png)
 
-### Step 10: Deploy the Three-Tier Application
+Now, check the service by the command below
+
+```bash
+kubectl get svc
+```
+
+![Get Services](image-60.png)
+
+Now, we need to access our Prometheus and Grafana consoles from outside of the cluster. For that, we need to change the Service type from `ClusterType` to `LoadBalancer`
+
+Edit the `prometheus-server` and `grafana` service
+
+```bash
+kubectl edit svc prometheus-server
+kubectl edit svc grafana
+```
+
+![Edit Services](image-61.png)
+
+![Edit grafana](image-62.png) ![Edit prometheus](image-63.png)
+
+Now, if you list the service again, then you will see the LoadBalancers' DNS names
+
+```bash
+kubectl get svc
+```
+
+![Get Svc](image-64.png)
+
+Now, access your `Prometheus Dashboard`
+
+Paste the <Prometheus-LB-DNS>:80 in your favourite browser, and you will see it like this
+
+![Promethus Portal](image-66.png)
+
+Click on `Status` and select `Target`. You will see a lot of Targets
+
+![Promethus Status](image-65.png)
+
+Now, access your `Grafana Dashboard`
+
+Copy the ALB DNS of Grafana and paste it into your favourite browser.
+
+The username will be `admin`, and for password run below cmd for your Grafana Log In.
+```bash
+kubectl get secret --namespace default grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+```
+
+![Grafana Landing Page](image-67.png)
+
+Now, click on `Data Source`
+
+![Grafana Datasource](image-68.png)
+
+Select `Prometheus`
+
+![DataSource](image-69.png)
+
+In the Connection, paste your <Prometheus-LB-DNS>:80.
+
+![Promethus URL](image-70.png)
+
+If the URL is correct, then you will see a green notification/
+
+Click on `Save` & `test`.
+
+![Promethus URL Save](image-71.png)
+
+Let’s try to import a type of Kubernetes Dashboard. Click on `New` and select `Import`
+
+![Import New DB](image-72.png)
+
+Provide `6417` ID and click on `Load`
+
+Note: 6417 is a unique ID from Grafana, which is used to monitor and visualise Kubernetes Data
+
+![Load DB](image-73.png)
+
+Select the data source that you have created earlier and click on `Import`.
+
+![Import DB](image-74.png)
+
+Here, you go. You can view your Kubernetes Cluster Data.
+
+Feel free to explore the other details of the Kubernetes Cluster.
+
+![Ready DB](image-75.png)
+
+### Step 10: Deploy the Three-Tier Application using ArgoCD.
 
 Using ArgoCD, deploy the application components:
 
@@ -536,18 +636,52 @@ Using ArgoCD, deploy the application components:
 * **Backend Layer:** NodeJS API deployments and services.
 * **Frontend Layer:** ReactJS user interface and ingress configurations mapping to your domain.
 
-### Step 11: Monitoring (Prometheus & Grafana)
+As our repository is private. So, we need to configure the Private Repository in ArgoCD.
 
-Deploy the Kube-Prometheus stack via Helm:
+Click on `Settings` and select `Repositories`
 
-```bash
-helm repo add prometheus-community [https://prometheus-community.github.io/helm-charts](https://prometheus-community.github.io/helm-charts)
-helm repo update
-helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace
+![AgroCD Setting](image-76.png)
 
-```
+Click on `CONNECT REPO USING HTTPS`
 
-Access Grafana using Port-Forwarding or LoadBalancer to build customized dashboards tracking pod health, CPU/memory usage, and application metrics.
+![Connect Repo](image-77.png)
+
+Now, provide the repository name where your Manifest files are present.
+
+![Repo Details](image-78.png)
+
+Provide the username and GitHub Personal Access token and click on `CONNECT`.
+
+![Repo Details 2](image-79.png)
+
+If your `Connection Status` is `Successful`, it means the repository connected successfully.
+
+![Connection Status](image-80.png)
+
+Now, we will create our first application, which will be a database.
+
+Click on `CREATE APPLICATION`.
+
+Provide the details as it is provided in the snippet below and scroll down.
+
+![Create App01](image-81.png)
+
+Select the same repository that you configured in the earlier step.
+
+![Create App02](image-82.png)
+
+In the Path, provide the location where your Manifest files are presented and provide other things as shown in the screenshot below.
+
+Click on `CREATE`.
+
+While your database Application is starting to deploy, we will create an application for the rest application similarly.
+
+| ApplicationName | ProjectName | SYNC POLICY | Repository URL | Path | Cluster URL | Namespace | 
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| database | default | Automatic | https://github.com/LearningGallery/End-to-End-k8s-3-Tier-DevSecOps-Project.git | Kubernetes-Manifests-file/Database/ | https://kubernetes.default.svc | 3tier | 
+| backend | default | Automatic | https://github.com/LearningGallery/End-to-End-k8s-3-Tier-DevSecOps-Project.git | Kubernetes-Manifests-file/Backend/ | https://kubernetes.default.svc | 3tier |
+| frontend | default | Automatic | https://github.com/LearningGallery/End-to-End-k8s-3-Tier-DevSecOps-Project.git | Kubernetes-Manifests-file/Frontend/ | https://kubernetes.default.svc | 3tier |
+| Ingress | default | Automatic | https://github.com/LearningGallery/End-to-End-k8s-3-Tier-DevSecOps-Project.git | Kubernetes-Manifests-file/ | https://kubernetes.default.svc | 3tier |
 
 ---
 
