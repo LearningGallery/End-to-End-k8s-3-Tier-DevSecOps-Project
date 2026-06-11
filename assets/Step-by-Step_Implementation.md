@@ -143,9 +143,56 @@ Click on `Start using Jenkins`
 ![Jenkins Dashboard](image-6.png)
 The Jenkins Dashboard will look like the snippet below
 
-### Step 4: EKS Cluster Deployment
+### Step 6: EKS Cluster Deployment
 
 Use `eksctl` on your Jenkins server to spin up the Kubernetes cluster:
+Now, go back to your `Jenkins-Server` terminal and configure the `AWSCLI`.
+![AWSCLI Configure](image-7.png)
+Go to `Manage Jenkins`
+![Manage Jenkins](image-8.png)
+Click on `Plugins`
+![Plugins](image-9.png)
+Select the `Available plugins`, install the following plugins and click on `Install`
+```bash
+AWS Credentials
+Pipeline: AWS Steps
+Pipeline: Stage View
+Docker
+Docker Commons
+Docker Pipeline
+Docker API
+docker-build-step
+Eclipse Temurin installer
+NodeJS
+OWASP Dependency-Check
+SonarQube Scanner
+```
+![PlugIn Install](image-10.png)
+Once both plugins are installed, restart your Jenkins service by checking the Restart Jenkins option.
+![Restart Jenkins](image-11.png)
+Log in to your Jenkins Server Again.
+![Jenkins Login](image-12.png)
+Now, we have to set our AWS credentials on Jenkins
+Go to `Manage Plugins` and click on `Credentials`
+![Manage Credentials](image-13.png)
+Click on `global`.
+![Global Credentials](image-14.png)
+Click on `Add Credentials`
+![Add Credential](image-15.png)
+Select `Username with Password` and Click `Next`
+![Create Credentials](image-16.png)
+Click on `Create` and continue for rest Credentials as shown below
+
+| ID / Name | Value / Hint | Scope / Description |
+| :--- | :--- | :--- |
+| **AWS_ACCESS_ID_n_KEY** | ASIAXCJHIGQY7YNIAI2U | System - Global - AWS Credentials |
+| **GITHUB_Login** | LearningGallery/****** (GITHUB Portal Login) | System - Global - GITHUB Portal Login |
+| **Sonar-Token** | | System - Global - Sonar-Token |
+| **GITHUB-Token** | | System - Global - GITHUB-Token |
+| **AWS_ACCOUNT_ID** | | System - Global - AWS_ACCOUNT_ID |
+| **ECR-Frontend** | | System - Global - ECR-Frontend |
+| **ECR-Backend** | | System - Global - ECR-Backend |
+| **NVD_API_KEY** | | System - Global - NVD DP Check Token |
 
 ```bash
 eksctl create cluster --name three-tier-cluster --region us-east-1 --node-type t3.medium --nodes 2
