@@ -183,16 +183,16 @@ Select `Username with Password` and Click `Next`
 ![Create Credentials](image-16.png)
 Click on `Create` and continue for rest Credentials as shown below
 
-| ID / Name | Value / Hint | Scope / Description |
-| :--- | :--- | :--- |
-| **AWS_ACCESS_ID_n_KEY** | ASIAXCJHIGQY7YNIAI2U | System - Global - AWS Credentials |
-| **GITHUB_Login** | LearningGallery/****** (GITHUB Portal Login) | System - Global - GITHUB Portal Login |
-| **Sonar-Token** | | System - Global - Sonar-Token |
-| **GITHUB-Token** | | System - Global - GITHUB-Token |
-| **AWS_ACCOUNT_ID** | | System - Global - AWS_ACCOUNT_ID |
-| **ECR-Frontend** | | System - Global - ECR-Frontend |
-| **ECR-Backend** | | System - Global - ECR-Backend |
-| **NVD_API_KEY** | | System - Global - NVD DP Check Token |
+| Type | ID / Name | Value / Hint | Scope / Description |
+| :--- | :--- | :--- | :--- |
+| AWS Credentials | **AWS_ACCESS_ID_n_KEY** | Key in `Access ID` and `Secret` that you Generated in `Step 1.8` for `AWSLCI` | System - Global - AWS Credentials |
+| Username with PPassword | **GITHUB_Login** | Key in your GITHUB Repository `Username` and `Personal Acess Token` Generated from `Developer setting` page  | System - Global - GITHUB Portal Login |
+| Secret Text | **Sonar-Token** | | System - Global - Sonar-Token |
+| Secret Text | **GITHUB-Token** | Key in your GITHUB `Personal Acess Token` Generated from `Developer setting` page | System - Global - GITHUB-Token |
+| Secret Text | **AWS_ACCOUNT_ID** | | System - Global - AWS_ACCOUNT_ID |
+| Secret Text | **ECR-Frontend** | | System - Global - ECR-Frontend |
+| Secret Text | **ECR-Backend** | | System - Global - ECR-Backend |
+| Secret Text | **NVD_API_KEY** | | System - Global - NVD DP Check Token |
 
 ```bash
 eksctl create cluster --name three-tier-cluster --region us-east-1 --node-type t3.medium --nodes 2
