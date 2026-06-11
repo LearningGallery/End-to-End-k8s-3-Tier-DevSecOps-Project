@@ -269,6 +269,7 @@ Download the policy for the LoadBalancer prerequisite.
 
 ```bash
 curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.5.4/docs/install/iam_policy.json
+curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
 ```
 
 ![Download Policy](image-20.png)
@@ -277,6 +278,7 @@ Create the IAM policy using the command below
 
 ```bash
 aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam_policy.json
+aws iam create-policy-version --policy-arn AWSLoadBalancerControllerIAMPolicy --policy-document file://iam_policy.json
 ```
 
 ![Create Policy](image-21.png)
@@ -298,7 +300,7 @@ eksctl create iamserviceaccount --cluster=3Tier-K8s-EKS-Cluster --namespace=kube
 eksctl create iamserviceaccount --name ebs-csi-controller-sa --namespace kube-system --cluster 3Tier-K8s-EKS-Cluster --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy --approve --role-only --role-name AmazonEKS_EBS_CSI_DriverRole
 
 # 2. Add the EBS CSI driver add-on to your cluster
-eksctl create addon --name aws-ebs-csi-driver --cluster 3Tier-K8s-EKS-Cluster --service-account-role-arn arn:aws:iam::485950501937:role/AmazonEKS_EBS_CSI_DriverRole --force
+eksctl create addon --name aws-ebs-csi-driver --cluster 3Tier-K8s-EKS-Cluster --service-account-role-arn arn:aws:iam::< YOUR AWS ACCOUNT ID >:role/AmazonEKS_EBS_CSI_DriverRole --force
 ```
 
 ![Create IAM SvcAccount](image-23.png)
@@ -683,23 +685,43 @@ While your database Application is starting to deploy, we will create an applica
 | frontend | default | Automatic | https://github.com/LearningGallery/End-to-End-k8s-3-Tier-DevSecOps-Project.git | Kubernetes-Manifests-file/Frontend/ | https://kubernetes.default.svc | 3tier |
 | Ingress | default | Automatic | https://github.com/LearningGallery/End-to-End-k8s-3-Tier-DevSecOps-Project.git | Kubernetes-Manifests-file/ | https://kubernetes.default.svc | 3tier |
 
+Finally you should see all Created Application are Synced and Healthy
+
+![Healthy Apps](image-83.png)
+
+Now, copy the ALB-DNS and after 2 to 3 minutes in your browser to see the magic.
+
+![Bingo App Launched](image-84.png)
 ---
 
 ## 🧹 Clean Up
 
 To avoid unexpected AWS charges, destroy all resources when the project is finished.
 
+### Delete EKS Cluster
+
 ```bash
-# Delete ArgoCD Applications
-kubectl delete -f application.yaml
+eksctl delete cluster --name 3Tier-K8s-EKS-Cluster --region ap-southeast-1
+```
 
-# Delete EKS Cluster
-eksctl delete cluster --name three-tier-cluster --region us-east-1
+### Delete Private Container Repository
 
-# Destroy EC2 Infrastructure via Terraform
-cd terraform
-terraform destroy --auto-approve
+```bash
+aws ecr delete-repository --repository-name frontend --region ap-southeast-1 --force
+aws ecr delete-repository --repository-name backend --region ap-southeast-1 --force
+```
 
+### Destroy EC2 Infrastructure via Terraform
+
+```bash
+cd Jenkins-Server-TF
+terraform destroy --var-file="variables.tfvars" --auto-approve
+```
+
+### Delete IAM Policy Created for AWSLoadBalancerControllerIAMPolicy
+```bash
+aws iam delete-policy-version --policy-arn < Arn of AWSLoadBalancerControllerIAMPolicy > --version-id v1
+aws iam delete-policy --policy-arn <Arn of AWSLoadBalancerControllerIAMPolicy >
 ```
 
 ## 🤝 Contributing
