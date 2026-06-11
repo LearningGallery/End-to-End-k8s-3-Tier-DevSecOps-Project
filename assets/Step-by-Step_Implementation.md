@@ -130,17 +130,23 @@ sudo -i
 cat '/var/lib/jenkins/secrets/initialAdminPassword'
 ```
 Paste the Initial Password and Click `Continue`
-![Initial Admin Password Extraction](image-1.png)
+![Initial Admin Password Extraction]
+(image-1.png)
 Click on `Install suggested plugins`
-![Jenkins Install Suggested Plugins](image-2.png)
+![Jenkins Install Suggested Plugins]
+(image-2.png)
 Jenkins Plugin Installation in Progress Page...
-![Track PlugIn Installation Progress](image-3.png)
+![Track PlugIn Installation Progress]
+(image-3.png)
 Create Admin User as Shown below
-![Create Admin User](image-4.png)
+![Create Admin User]
+(image-4.png)
 Click on `Save and Finish`
-![Jenkins URL Config Page](image-5.png)
+![Jenkins URL Config Page]
+(image-5.png)
 Click on `Start using Jenkins`
-![Jenkins Dashboard](image-6.png)
+![Jenkins Dashboard]
+(image-6.png)
 The Jenkins Dashboard will look like the snippet below
 
 ### Step 4: EKS Cluster Deployment
