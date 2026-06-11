@@ -9,9 +9,11 @@
 ![Grafana](https://img.shields.io/badge/grafana-%23F46800.svg?style=for-the-badge&logo=grafana&logoColor=white)
 
 ## 📝 Project Overview
+
 This project is an advanced, end-to-end guide for deploying, securing, and monitoring a scalable three-tier application (Database, Backend, Frontend) on AWS using Kubernetes. It emphasizes DevSecOps best practices by integrating security scanning into CI/CD pipelines, automating infrastructure with Terraform, and using GitOps principles for continuous delivery.
 
 ## 🛠️ Tools & Technologies Used
+
 * **Cloud Provider:** Amazon Web Services (AWS)
 * **Infrastructure as Code (IaC):** Terraform & AWS CLI
 * **Containerization:** Docker & Amazon Elastic Container Registry (ECR)
@@ -22,6 +24,7 @@ This project is an advanced, end-to-end guide for deploying, securing, and monit
 * **Monitoring & Observability:** Prometheus & Grafana
 
 ## 🏗️ Architecture & High-Level Flow
+
 1. **Infrastructure Provisioning:** Terraform provisions an EC2 instance to serve as the Jenkins CI Server.
 2. **Cluster Creation:** `eksctl` spins up a managed Kubernetes cluster on AWS (EKS).
 3. **CI Pipeline (Jenkins):** Code commits trigger Jenkins pipelines. The code is pulled, scanned with SonarQube, built into Docker images, scanned again using Trivy, and pushed securely to Amazon ECR.
@@ -30,6 +33,7 @@ This project is an advanced, end-to-end guide for deploying, securing, and monit
 6. **Observability:** Prometheus scrapes cluster metrics, which are visualized via Grafana Dashboards.
 
 ## ⚙️ Prerequisites
+
 Before getting started, ensure you have the following:
 * An AWS Account with permissions to create resources (IAM, VPC, EKS, EC2, ECR).
 * Terraform installed on your local machine.
@@ -41,6 +45,7 @@ Before getting started, ensure you have the following:
 ## 🚀 Step-by-Step Execution Guide
 
 ### Step 1: IAM User Setup
+
 1. Navigate to the AWS IAM Service and click on `Users`.
 2. Click on `Create user`.
 3. User Name : `ToDo-K8s-DevSecOps` Click on `Next`.
@@ -51,6 +56,7 @@ Before getting started, ensure you have the following:
 8. Save Generated `Access key` and `Secret access key` somewhere safe will use them to configure terraform and AWSCLI tools.
 
 ### Step 2: We will install Terraform & AWS CLI to deploy our Jenkins Server(EC2) on AWS if not installed already on your local machine.
+
 #### Terraform Installation Script on ubuntu machine.
 ```bash
 wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg - dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
@@ -67,6 +73,7 @@ sudo ./aws/install
 ```
 
 ### Step 3: Now, Configure both the tools AWSCLI and Terraform
+
 #### Configure `Terraform`: Edit the file `/etc/environment` using the below command, add the highlighted lines and add your keys in the blur space.
 ```bash
 sudo vim /etc/environment
@@ -85,22 +92,36 @@ Default output format [None]: json
 ```
 
 ### Step 4: Infrastructure Provisioning (Terraform)
+
 Clone the Git repository- https://github.com/LearningGallery/End-to-End-k8s-3-Tier-DevSecOps-Project.git
 1. Navigate to the Terraform directory `Jenkins-Server-TF` in this repository to launch the Jenkins server.
-2. Before Running terraform cmd make sure you have created s3 bucket named `learninggallery-tf-statefiles` in aws to store terraform state file.
+2. Before Running terraform cmd make sure you have created s3 bucket named `learninggallery-tf-statefiles` in aws `ap-southeast-1` region to store terraform state file.
+3. Create SSH key Pair Named `learninggallery1` and store the generated .pem file safe will use this PEM file to authenticate and connect `Jenkins-Server` vm once provisioned.
+4. Now, Provsion Infrastructure by running below Terraform CMDs.
 ```bash
-cd terraform
+cd Jenkins-Server-TF
 terraform init
+terraform fmt
+terraform validate
 terraform plan
-terraform apply --var-file="variables.tfvars" --auto-approve 
-
+terraform apply --var-file="variables.tfvars" --auto-approve
 ```
 
-### Step 3: Jenkins Server Configuration
+### Step 5: Jenkins Server Configuration
 
-SSH into your newly provisioned EC2 instance and install the required utilities:
+* SSH into your newly provisioned EC2 instance `Jenkins-Server` using `Public IP` you may get it from AWS portal and and verify all the required utilities tools installed by Userdata script by running below cmds:
+```bash
+jenkins --version
+docker --version
+docker ps
+terraform --version
+kubectl version
+aws --version
+trivy --version
+eksctl --version
+```
 
-* Jenkins, Docker, SonarQube, Terraform, `kubectl`, AWS CLI, and Trivy.
+* Now, we have to configure Jenkins. So, copy the public IP of your Jenkins Server and paste it into your favourite browser on port 8080
 * Access Jenkins at `http://<EC2-PUBLIC-IP>:8080`.
 
 ### Step 4: EKS Cluster Deployment
