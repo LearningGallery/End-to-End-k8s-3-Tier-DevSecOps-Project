@@ -103,7 +103,7 @@ cd Jenkins-Server-TF
 terraform init
 terraform fmt
 terraform validate
-terraform plan
+terraform plan --var-file="variables.tfvars"
 terraform apply --var-file="variables.tfvars" --auto-approve
 ```
 
@@ -121,8 +121,27 @@ trivy --version
 eksctl --version
 ```
 
-* Now, we have to configure Jenkins. So, copy the public IP of your Jenkins Server and paste it into your favourite browser on port 8080
-* Access Jenkins at `http://<EC2-PUBLIC-IP>:8080`.
+Now, we have to configure Jenkins. So, copy the public IP of your Jenkins Server and paste it into your favourite browser on port 8080
+Access Jenkins at `http://<EC2-PUBLIC-IP>:8080`.
+![JenKins Getting Started Page](image.png)
+To Extract Initial Password Login to `Jenkins-Server` using `ubuntu` userid and generated pam file as authentication file and run below cmd given.
+```bash
+sudo -i
+cat '/var/lib/jenkins/secrets/initialAdminPassword'
+```
+Paste the Initial Password and Click `Continue`
+![Initial Admin Password Extraction](image-1.png)
+Click on `Install suggested plugins`
+![Jenkins Install Suggested Plugins](image-2.png)
+Jenkins Plugin Installation in Progress Page...
+![Track PlugIn Installation Progress](image-3.png)
+Create Admin User as Shown below
+![Create Admin User](image-4.png)
+Click on `Save and Finish`
+![Jenkins URL Config Page](image-5.png)
+Click on `Start using Jenkins`
+![Jenkins Dashboard](image-6.png)
+The Jenkins Dashboard will look like the snippet below
 
 ### Step 4: EKS Cluster Deployment
 
