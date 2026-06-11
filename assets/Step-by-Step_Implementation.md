@@ -206,27 +206,133 @@ Once your cluster is created, you can validate whether your nodes are ready or n
 ```bash 
 kubectl get nodes
 ```
+![List EKS Pods](image-19.png)
 
-### Step 7: AWS Load Balancer Controller Setup
+### Step 7: AWS App Load Balancer Ingress Controller Setup For EKS
 
 1. Create an IAM policy and attach it to an OIDC provider.
-2. Deploy the AWS Application Load Balancer (ALB) Controller to your EKS cluster to handle ingress traffic automatically.
+Download the policy for the LoadBalancer prerequisite.
+```bash
+curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.5.4/docs/install/iam_policy.json
+```
+![Download Policy](image-20.png)
+Create the IAM policy using the command below
+```bash
+aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam_policy.json
+```
+![Create Policy](image-21.png)
+Create OIDC Provider
+```bash
+eksctl utils associate-iam-oidc-provider --region=ap-southeast-1 --cluster=3Tier-K8s-EKS-Cluster --approve
+```
+![Create OIDC Provider](image-22.png)
+Create a Service Account by using the below command and replace your account ID with your one.
+```bash
+eksctl create iamserviceaccount --cluster=3Tier-K8s-EKS-Cluster --namespace=kube-system --name=aws-load-balancer-controller --role-name AmazonEKSLoadBalancerControllerRole --attach-policy-arn=arn:aws:iam::<your_account_id>:policy/AWSLoadBalancerControllerIAMPolicy --approve --region=ap-southeast-1
+```
+![Create IAM SvcAccount](image-23.png)
 
-### Step 6: Amazon ECR Repositories
+2. Deploy the AWS Application Load Balancer (ALB) Controller to your EKS cluster to handle ingress traffic automatically.
+Run the below command to deploy the AWS Load Balancer Controller
+```bash
+sudo snap install helm --classic
+helm repo add eks https://aws.github.io/eks-charts
+helm repo update eks
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=my-cluster --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller
+```
+![ALB ingress Controller](image-24.png)
+After 2 minutes, run the command below to check whether your pods are running or not.
+```bash
+kubectl get deployment -n kube-system aws-load-balancer-controller
+```
+![Get ALB Controller](image-25.png)
+
+### Step 8: Amazon ECR Repositories
 
 Create private Elastic Container Registry (ECR) repositories for your application images.
 
 ```bash
-aws ecr create-repository --repository-name frontend-app --region us-east-1
-aws ecr create-repository --repository-name backend-app --region us-east-1
+aws ecr create-repository --repository-name frontend --region ap-southeast-1
+aws ecr create-repository --repository-name backend --region ap-southeast-1
 
 ```
+![Create ECR](image-26.png)
+Now, we need to configure ECR locally because we have to upload our images to Amazon ECR.
+Copy the 1st command for login as shown
+![ECR Login CMD](image-27.png)
+Now, run the copied command on your `Jenkins-Server`.
+![ECR Login](image-28.png)
 
-### Step 7: Security & Code Quality (SonarQube & Trivy)
+#### Step 9: Install & Configure ArgoCD
+We will be deploying our application on a 3tier namespace. To do that, we will create a 3tier namespace on EKS
+```bash
+kubectl create namespace three-tier
+```
+![Create 3Tier Namepsace](image-29.png)
+create a secret for our ECR Repo by the below command
+```bash
+kubectl create secret generic ecr-registry-secret \
+  --from-file=.dockerconfigjson=${HOME}/.docker/config.json \
+  --type=kubernetes.io/dockerconfigjson --namespace 3tier
+kubectl get secrets -n 3tier
+```
+![Create ECR Secret](image-30.png)
+Now, we will install argoCD. To do that, create a separate namespace for it and apply the argocd configuration for installation.
+```bash
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.4.7/manifests/install.yaml
+```
+![ArgoCD Namespace](image-31.png)
+All pods must be running. To validate, run the command below
+```bash
+kubectl get pods -n argocd
+```
+![Get Argo pods](image-32.png)
+Now, expose the argoCD server as a LoadBalancer using the below command
+```bash
+kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+```
+![Expose on LB](image-33.png)
+To access the argoCD, copy the LoadBalancer DNS and hit it on your favourite browser.
+![Landing Page ArgoCD](image-34.png)
+Now, we need to get the password for our argoCD server to perform the deployment.
+To do that, we have a prerequisite, which is jq. Install it by the command below.
+```bash
+sudo apt install jq -y
+export ARGOCD_SERVER=$(kubectl get svc argocd-server -n argocd -o json | jq -r '.status.loadBalancer.ingress[0].hostname')
+export ARGO_PWD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+echo %ARGO_PWD
+```
+![Default Admin Password](image-35.png)
+Here is our ArgoCD Dashboard.
+![ArgoCD Dashboard](image-36.png)
+
+### Step 10: Configure Security & Code Quality (SonarQube & Trivy)
 
 1. Access SonarQube via `http://<EC2-PUBLIC-IP>:9000`.
-2. Generate a Webhook and Security Token.
-3. Integrate SonarQube and Trivy into your Jenkins credentials store for pipeline execution.
+Default Username and Password will be admin 
+Click on Log In
+![SonarQube Login](image-37.png)
+On the next Page will ask to `Update your Password` just change as per your choice.
+2. Generate a Security Token and Webhook.
+Click on `Administration`, then `Security`, select `Users` and Click on `Update token`
+![SonarQube-user](image-38.png)
+Click on `Generate` and Copy the `token`, keep it somewhere safe and click on `Done`.
+![Generate Token](image-39.png)
+Now, We have to configure webhooks for quality checks. Click on `Administration`, then `Configuration`, and select `Webhooks`
+![Sonar Webhook](image-40.png)
+Click on `Create` and Provide the name of your project and in the URL, provide the Jenkins server public IP with port 8080, add sonarqube-webhook in the suffix, and click on `Create`.
+`http://<jenkins-server-public-ip>:8080/sonarqube-webhook/`
+![alt text](image-41.png)
+Now, we have to create a Project for the `frontend` code. Click on `Manually`.
+![Create Project](image-45.png)
+Provide the display name `3Tier-Frontend` to your Project and click on `Setup`
+![Frontend Project](image-42.png)
+Select the `Use existing token` and click on `Continue`.
+![Provide Token](image-43.png)
+Select `Other` and `Linux` as OS.
+![Run Analysis](image-44.png)
+Now, we have to create a Project for the Frontend code do the same for Backend Code.
 
 ### Step 8: Jenkins CI/CD Pipelines
 
