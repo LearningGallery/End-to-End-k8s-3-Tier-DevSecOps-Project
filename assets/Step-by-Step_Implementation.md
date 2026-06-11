@@ -96,7 +96,7 @@ Default output format [None]: json
 Clone the Git repository- https://github.com/LearningGallery/End-to-End-k8s-3-Tier-DevSecOps-Project.git
 1. Navigate to the Terraform directory `Jenkins-Server-TF` in this repository to launch the Jenkins server.
 2. Before Running terraform cmd make sure you have created s3 bucket named `learninggallery-tf-statefiles` in aws `ap-southeast-1` region to store terraform state file.
-3. Create SSH key Pair Named `learninggallery1` and store the generated .pem file safe will use this PEM file to authenticate and connect `Jenkins-Server` vm once provisioned.
+3. Create SSH key Pair Named `learninggallery` and store the generated .pem file safe will use this PEM file to authenticate and connect `Jenkins-Server` vm once provisioned.
 4. Now, Provsion Infrastructure by running below Terraform CMDs.
 ```bash
 cd Jenkins-Server-TF
@@ -109,7 +109,7 @@ terraform apply --var-file="variables.tfvars" --auto-approve
 
 ### Step 5: Jenkins Server Configuration
 
-* SSH into your newly provisioned EC2 instance `Jenkins-Server` using `Public IP` you may get it from AWS portal and and verify all the required utilities tools installed by Userdata script by running below cmds:
+SSH into your newly provisioned EC2 instance `Jenkins-Server` using `Public IP` you may get it from AWS portal and and verify all the required utilities tools installed by Userdata script by running below cmds:
 ```bash
 jenkins --version
 docker --version
@@ -189,17 +189,25 @@ Click on `Create` and continue for rest Credentials as shown below
 | Username with PPassword | **GITHUB_Login** | Key in your GITHUB Repository `Username` and `Personal Acess Token` Generated from `Developer setting` page  | System - Global - GITHUB Portal Login |
 | Secret Text | **Sonar-Token** | | System - Global - Sonar-Token |
 | Secret Text | **GITHUB-Token** | Key in your GITHUB `Personal Acess Token` Generated from `Developer setting` page | System - Global - GITHUB-Token |
-| Secret Text | **AWS_ACCOUNT_ID** | | System - Global - AWS_ACCOUNT_ID |
+| Secret Text | **AWS_ACCOUNT_ID** | Key in Your `AWS Account ID` | System - Global - AWS_ACCOUNT_ID |
 | Secret Text | **ECR-Frontend** | | System - Global - ECR-Frontend |
 | Secret Text | **ECR-Backend** | | System - Global - ECR-Backend |
 | Secret Text | **NVD_API_KEY** | | System - Global - NVD DP Check Token |
+Finally it should resemble like this.
+![Jenkins Credentials](image-17.png)
 
+Create an eks cluster using the commands below.
 ```bash
-eksctl create cluster --name three-tier-cluster --region us-east-1 --node-type t3.medium --nodes 2
-
+eksctl create cluster --name 3Tier-K8s-EKS-Cluster --region ap-southeast-1 --node-type t2.medium --nodes-min 2 --nodes-max 2
+aws eks update-kubeconfig --region ap-southeast-1 --name 3Tier-K8s-EKS-Cluster
+```
+![Provision EKS using CMD](image-18.png)
+Once your cluster is created, you can validate whether your nodes are ready or not by using the following command
+```bash 
+kubectl get nodes
 ```
 
-### Step 5: AWS Load Balancer Controller Setup
+### Step 7: AWS Load Balancer Controller Setup
 
 1. Create an IAM policy and attach it to an OIDC provider.
 2. Deploy the AWS Application Load Balancer (ALB) Controller to your EKS cluster to handle ingress traffic automatically.
